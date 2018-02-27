@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Version>1.0.0.0</Version>
+  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\jump_dpthresh.dfbproj</ProjectFileName>
+  <Bus1Data>0x000004
+0x000003
+0x000004
+0x000005</Bus1Data>
+  <Bus2Data />
+  <Code>// Example of using datapath threshold flag to branch (asserted when the ALU detects a sign change)
+// Stage_A input results in several sign changes as output goes from positive to negative and back
+
+init:
+    // ----------------------------------------
+    // Load the next Stage_A value and subtract
+    // [SUBTRACTION_VAL_1] in DataRam_A from it
+    // ----------------------------------------
+
+    // Initialize
+    // [acu]    Ensure we are positioned on [SUBTRACTION_VAL_1] at 0x00
+    acu(clear, clear) dmux(sa, sa) alu(hold) mac(hold)
+        
+    // [dmux].a     Set up to read bus Stage_A to ALU
+    // [dmux].b     Set up to read [SUBTRACTION_VAL_1] from DataRam_A to ALU
+    // [alu]        Set up to subtract b from a with threshold detection
+    acu(hold, hold) addr(1) dmux(ba, sra) alu(tsubb) mac(hold)
+
+    // Pipeline delay
+    // [alu]        Data values are loaded off the datapath
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
+
+    // Unconditional jump: go to [dpsign_check]
+    // [alu]        ALU output is put on the datapath
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(dpthresh, sign_changed)
+
+sign_did_not_change:
+    // --------------------------------------------------
+    // This branch is entered when [alu].a - [alu].b &gt;= 0
+    // --------------------------------------------------
+
+    // Unconditional jump: return to [init]
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, init)
+
+sign_changed:
+    // --------------------------------------------------
+    // This branch is entered when [alu].a - [alu].b &lt; 0
+    // --------------------------------------------------
+
+    // Unconditional jump: return to [init]
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, init)
+
+area data_b
+org 0
+dw 0x000004    // [SUBTRACTION_VAL_1]
+</Code>
+  <CyclesToRun>20</CyclesToRun>
+  <InputSequence />
+</DFBProject>

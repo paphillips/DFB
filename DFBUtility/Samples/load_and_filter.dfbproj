@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Version>1.0.0.0</Version>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Examples\load_and_filter.dfbproj</ProjectFileName>
+  <Bus1Data>0x1000
+0x1001
+0x1002
+0x1003</Bus1Data>
+  <Bus2Data />
+  <Code>// Load and filter
+// Adapted from Chris Keeser, Cypress: http://www.cypress.com/forum/psoc-community-components/dfb-assembler-and-significantly-improved-simulator-component
+// Loads 4 values off [Stage_A], applies a filter to them, and copies the results to [DataRam_B]
+
+init:
+    // --------------------------------------------------------
+    // Setup and intialization - after setup, waits for Stage_A 
+    // input and stores the first value in DataRam_A [0x00]
+    // --------------------------------------------------------
+
+    // [acu]        Reset to DataRam address [0x00]
+    // [alu]        Set to zero
+    acu(clear, clear) dmux(sa, sa) alu(set0) mac(hold)
+
+    // [acu_a]      Load [DATA_BLOCK_END] to mreg
+    // [acu_b]      Load [COEFF_BLOCK_END] to mreg
+    acu(loadm, loadm) addr(0) dmux(sa, sa) alu(hold) mac(clra)
+
+    // [acu_a]      Load [DATA_BLOCK_INCR] to freg
+    acu(loadf, hold) addr(1) dmux(ba, sa) alu(hold) mac(hold)
+
+    // [dmux]       Set up for bus read on Stage_A
+    // [write]      Write [Stage_A] [0] to [DataRam_A][0x00]
+    // JUMP:        Is value [in1] register populated with Stage_A data?
+    //              [True]   Value loaded - go to [load_RAMA]
+    //              [False]  Loop to [init]
+    acu(hold, hold) addr(1) dmux(ba, sa) alu(hold) mac(hold) write(da) jmpl(eob, in1, load_RAMA)
+
+load_RAMA:
+    // ------------------------------------------------------------
+    // Load next 3 values from Stage_A and stores them in DataRam_A
+    // ------------------------------------------------------------
+    
+    // [acu_a]      Advance the [DataRam_A] location to [0x06]: reg [0x00] + freg [0x06]
+    // [dmux]       Keep Stage_A connected to datapath
+    // [write]      Write [Stage_A] [0] to [DataRam_A][0x06]
+    acu(addf, hold) addr(1) dmux(ba, sa) alu(hold) mac(hold) write(da) 
+    
+    // [acu_a]      Advance the [DataRam_A] location to [0x0C]: reg [0x06] + freg [0x06]
+    // [dmux]       Keep Stage_A connected to datapath
+    // [write]      Write [Stage_A] [0] to [DataRam_A][0x0C]
+    acu(addf, hold) addr(1) dmux(ba, sa) alu(hold) mac(hold) write(da) 
+    
+    // [acu_a]      Advance the [DataRam_A] location to [0x12]: reg [0x0C] + freg [0x06]
+    // [write]      Write [Stage_A] [0] to [DataRam_A][0x12]
+    acu(addf, hold) addr(1) dmux(sa, sa) alu(hold) mac(hold) write(da) 
+    
+    // [acu_a]      Advance the [DataRam_A] location to [0x00]: reg [0x12] + freg [0x06] 
+    //              Modulus arith wraps address around to [0x00] since mreg = [0x17] and we moved past it
+    // [mac]        Clra will set up tp load a and b for multiplication while first clearing any 
+    //              prior accum value
+    // JUMP:        Did the ACU wrap around?
+    //              [True]   Wrapped around - go to [Filter]
+    //              [False]  Loop back to [load_RAMA]
+    acu(addf, hold) addr(1) dmux(sra, sra) alu(hold) mac(clra) jmpl(acuaeq, Filter)
+
+Filter:
+    // ----------------
+    // Apply the filter
+    // ----------------
+
+    // [acu_a]      Advance DataRam address by 1 
+    // [acu_b]      Advance DataRam address by 1 
+    // [dmux]       Keep MAC fed with DataRam values
+    // [mac].a      Load [INPUT_n] from [DataRam_A]
+    // [mac].b      Load [ALPHA1] coefficient from [DataRam_B]
+    // [mac].out    No output yet
+    acu(incr, incr) dmux(sra, sra) alu(hold) mac(macc)
+
+    // [acu_a]      Advance DataRam address by 1 
+    // [acu_b]      Advance DataRam address by 1 
+    // [dmux]       Keep MAC fed with DataRam values
+    // [mac].a      Load [INPUT_n_MULT1] from [DataRam_A]
+    // [mac].b      Load [2*ALPHA] coefficient from [DataRam_B]
+    // [mac].out    Prior macc operation result
+    // [write]      Output calculation resul to [Hold_A]
+    acu(incr, incr) addr(1) dmux(sra, sra) alu(hold) mac(macc) write(abus)
+    
+    // [acu_a]      Advance DataRam address by 1 
+    // [acu_b]      Advance DataRam address by 1 
+    // [dmux]       Keep MAC fed with DataRam values
+    // [mac].a      Load [INPUT_n_MULT2] from [DataRam_A]
+    // [mac].b      Load [ALPHA2] coefficient from [DataRam_B]
+    // [mac].out    Prior macc operation result
+    // [write]      Output calculation resul to [Hold_A]
+    acu(incr, incr) addr(0) dmux(sra, sra) alu(hold) mac(macc) write(bbus)
+     
+    // [acu_a]      Advance DataRam address by 1 
+    // [acu_b]      Advance DataRam address by 1 
+    // [mac].a      Load [INPUT_n_MULT3] from [DataRam_A]
+    // [mac].b      Load [GAMMA] coefficient from [DataRam_B]
+    // [mac].out    Prior macc operation result
+    // [write]      Output calculation resul to [Hold_A]
+    acu(incr, incr) dmux(sra, sra) alu(hold) mac(macc)
+
+    // [acu_a]      Advance DataRam address by 1 
+    // [acu_b]      Advance DataRam address by 1 
+    // [mac].a      Load [INPUT_n_MULT4] from [DataRam_A]
+    // [mac].b      Load [-BETA] coefficient from [DataRam_B]
+    // [mac].out    Prior macc operation result
+    // [write]      Output calculation resul to [Hold_A]
+    acu(incr, incr) dmux(sra, sra) alu(hold) mac(hold) 
+
+    // [dmux]       Set up srm datapath to fee [mac].out to [alu] in seta instr
+    acu(hold, hold) dmux(srm, sra) alu(seta) mac(hold)  
+
+    // [shifter]    Multiply the result by 2 using bitshift
+    acu(hold, hold) dmux(sra, sra) alu(hold) mac(hold) shift(l,1)
+
+    // [write]      Write calculation result to [INPUT_n_RESULT]
+    acu(hold, hold) dmux(sra, sra) alu(hold) mac(hold) write(da)
+
+    // [acu_a]      Move to the next input
+    // JUMP:        Did the ACU wrap around?
+    //              [True]   Wrapped around, done processing all inputs - go to [move_y_prep]
+    //              [False]  Loop back to [Filter] and process next input value
+    acu(incr, hold) dmux(sra, sra) alu(hold) mac(clra)  jmpl(acuaeq, move_y_prep)
+
+move_y_prep:
+    // ---------------------------------------
+    // Move Y outputs to data ram B (cycle 44)
+    // ---------------------------------------
+
+    // [acu_a]      Move to end of input's data range
+    // [acu_b]      Load [OUTPUT_BLOCK_START]
+    acu(addf, loadl) addr(1) dmux(sra, sra) alu(passrama) mac(hold)
+    
+    // [acu_a]      Move back one to position on [INPUT_n_RESULT]
+    // [acu_b]      Clear command moves to current lreg position [0x05]
+    // [alu].a      Load [INPUT_n_RESULT]
+    acu(decr, clear) dmux(sra, sra) alu(passrama) mac(hold)
+
+    // [acu_a]      Move to next [INPUT_n_RESULT]
+    // [acu_b]      Load [OUTPUT_BLOCK_END]
+    // [alu].a      Load [INPUT_n_RESULT]
+    // [write]      Store [INPUT_n_RESULT] in the [INPUT_N_RESULT_OUT] output slot
+    acu(addf, loadm) addr(2) dmux(sra, sra) alu(passrama) mac(hold) write(db)
+
+    // [acu_a]      Move to next [INPUT_n_RESULT]
+    // [acu_b]      Move forward 1 adddress to store next output
+    // [alu].a      Load [INPUT_n_RESULT]
+    // [write]      Store [INPUT_n_RESULT] in the [INPUT_N_RESULT_OUT] output slot
+    acu(addf, incr) dmux(sra, sra) alu(passrama) mac(hold) write(db) 
+
+    // [acu_a]      Move to next [INPUT_n_RESULT]
+    // [acu_b]      Move forward 1 adddress to store next output
+    // [alu].a      Load [INPUT_n_RESULT]
+    // [write]      Store [INPUT_n_RESULT] in the [INPUT_N_RESULT_OUT] output slot
+    acu(addf, incr) dmux(sra, sra) alu(passrama) mac(hold) write(db) 
+
+    // [acu_a]      Move to next [INPUT_n_RESULT] (wraps around)
+    // [acu_b]      Move forward 1 adddress to store next output
+    // [alu].a      Load [INPUT_n_RESULT]
+    // [write]      Store [INPUT_n_RESULT] in the [INPUT_N_RESULT_OUT] output slot
+    acu(addf, incr) dmux(sra, sra) alu(passrama) mac(hold) write(db) 
+
+    // [acu_b]      Move forward 1 adddress to store next output
+    // JUMP:        Did the ACU wrap around?
+    //              [True]   Wrapped around, done processing all inputs - go to [done1]
+    //              [False]  Fall through to [move_y]
+    acu(hold, incr) dmux(sra, sra) alu(passrama) mac(hold) jmp(eob, acubeq, done1)
+
+done1:
+    // -------------------------------
+    // End of program - inifinite loop
+    // -------------------------------
+    acu(hold, hold) dmux(sra, sra) alu(hold) mac(hold) jmpl(eob, done1)
+
+area acu
+org 0
+dw 0x1704  // [DATA_BLOCK_END]  | [COEFF_BLOCK_END]
+dw 0x0605  // [DATA_BLOCK_INCR] | [OUTPUT_BLOCK_START]
+dw 0x0008  //                   | [OUTPUT_BLOCK_END]
+
+area data_a
+org 0
+// F0_IP
+dw 0x000000 // [INPUT_1] Multiplied by [ALPHA1]
+dw 0x010001 // [INPUT_1_MULT1] Multiplied by [2*ALPHA]
+dw 0x010002 // [INPUT_1_MULT2] Multiplied by [ALPHA2]
+dw 0x010003 // [INPUT_1_MULT3] Multiplied by [GAMMA]
+dw 0x010004 // [INPUT_1_MULT4] Multiplied by [-BETA]
+dw 0x000000 // [INPUT_1_RESULT]
+
+// F0_QP
+org 6
+dw 0x000000 // [INPUT_2]
+dw 0x020001 // [INPUT_2_MULT1] Multiplied by [2*ALPHA]
+dw 0x020002 // [INPUT_2_MULT2] Multiplied by [ALPHA2]
+dw 0x020003 // [INPUT_2_MULT3] Multiplied by [GAMMA]
+dw 0x020004 // [INPUT_2_MULT4] Multiplied by [-BETA]
+dw 0x000000 // [INPUT_2_RESULT]
+
+// F1_IP
+org 12
+dw 0x000000 // [INPUT_3]
+dw 0x030001 // [INPUT_3_MULT1] Multiplied by [2*ALPHA]
+dw 0x030002 // [INPUT_3_MULT2] Multiplied by [ALPHA2]
+dw 0x030003 // [INPUT_3_MULT3] Multiplied by [GAMMA]
+dw 0x030004 // [INPUT_3_MULT4] Multiplied by [-BETA]
+dw 0x000000 // [INPUT_3_RESULT]
+
+// F1_QP
+org 18
+dw 0x000000 // [INPUT_4]
+dw 0x040001 // [INPUT_4_MULT1] Multiplied by [2*ALPHA]
+dw 0x040002 // [INPUT_4_MULT2] Multiplied by [ALPHA2]
+dw 0x040003 // [INPUT_4_MULT3] Multiplied by [GAMMA]
+dw 0x040004 // [INPUT_4_MULT4] Multiplied by [-BETA]
+dw 0x000000 // [INPUT_4_RESULT]
+
+area data_b
+org 0
+dw 0x0FF001 // [ALPHA1]
+dw 0x0FF002 // [2*ALPHA]
+dw 0x0FF003 // [ALPHA2]
+dw 0x0FF004 // [GAMMA]
+dw 0x0FF005 // [-BETA]
+dw 0x000000 // [INPUT_1_RESULT_OUT]
+dw 0x000000 // [INPUT_2_RESULT_OUT]
+dw 0x000000 // [INPUT_3_RESULT_OUT]
+dw 0x000000 // [INPUT_4_RESULT_OUT]</Code>
+  <CyclesToRun>70</CyclesToRun>
+  <InputSequence>
+    <InputSequence>
+      <Cycle>0</Cycle>
+      <GlobalInput1>false</GlobalInput1>
+      <GlobalInput2>false</GlobalInput2>
+      <Semaphore0>true</Semaphore0>
+      <Semaphore1>false</Semaphore1>
+      <Semaphore2>false</Semaphore2>
+    </InputSequence>
+    <InputSequence>
+      <Cycle>0</Cycle>
+      <GlobalInput1>false</GlobalInput1>
+      <GlobalInput2>false</GlobalInput2>
+      <Semaphore0>false</Semaphore0>
+      <Semaphore1>true</Semaphore1>
+      <Semaphore2>false</Semaphore2>
+    </InputSequence>
+  </InputSequence>
+</DFBProject>

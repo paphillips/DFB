@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Version>1.0.0.0</Version>
+  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\saturation.dfbproj</ProjectFileName>
+  <Bus1Data>0x7FFFFA
+0x000000
+0x7FFFFB
+0x000000
+0x7FFFFC
+0x000000
+0x7FFFFD
+0x000000
+0x7FFFFE
+0x000000
+0x7FFFFF
+0x000000</Bus1Data>
+  <Bus2Data />
+  <Code>// Example of using saturation flag to branch
+
+init:
+    // [alu]    Enable saturation detection
+    acu(clear, clear) dmux(sa, sa) alu(englobals, 100) mac(hold)
+    acu(clear, clear) dmux(sa, sa) alu(ensatrnd, 110) mac(hold)
+    
+    // [dmux]   Set up for bus read to occur in next instruction
+    // [mac]    Set up to multiply. Will load a and b terms from bus in next instruction when bus input is read
+    acu(hold, hold) addr(1) dmux(bm, bm) alu(hold) mac(clra)
+
+    // [dmux]   Connects shfter to mac, mac to alu to load mac result into alu on both sides
+    //          Stage_A[0] is read into data path
+    // [mac]    Loads first bus A value into a and b and multiplies them
+    acu(hold, hold) dmux(sm, sm) alu(add) mac(hold)
+
+    // Unconditional jump: go to [saturation_check]
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, saturation_check)
+
+saturation_check:
+    // Conditional jump: Stage_A data available &amp;&amp; output is in saturation?
+    //  [true]   Jump to [saturate]
+    //  [false]  Loop back to init
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(sat, saturated)
+
+not_saturated:
+    // Clear saturation enable, otherwise jump will still require saturation flag
+    acu(hold, hold) dmux(sa, sa) alu(englobals, 000) mac(hold)
+
+    // Pipeline wait
+    acu(hold, hold) dmux(sa, sa) alu(add) mac(hold)
+
+    // Unconditional jump: return to [init]
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, init)
+
+saturated:
+    // Clear saturation enable, otherwise jump will still require saturation flag
+    acu(hold, hold) dmux(sa, sa) alu(englobals, 000) mac(hold)
+    
+    // Clear saturation flag, otherwise jump will still require saturation flag
+    acu(hold, hold) dmux(sa, sa) alu(ensatrnd, 110) mac(hold)
+
+    // Pipeline wait
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
+
+    // Unconditional jump: return to [init]
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, init)</Code>
+  <CyclesToRun>50</CyclesToRun>
+  <InputSequence />
+</DFBProject>

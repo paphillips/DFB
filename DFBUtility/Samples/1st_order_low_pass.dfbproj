@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Version>1.0.0.0</Version>
+  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\1st_order_low_pass.dfbproj</ProjectFileName>
+  <Bus1Data>0x0007D0
+0x000BF5
+0x000DAC
+0x000BF5
+0x0007D0
+0x0003AB
+0x0001F4
+0x0003AB
+0x0007D0
+0x000BF5
+0x000DAC
+0x000BF5
+0x0007D0
+0x0003AB
+0x0001F4
+0x0003AB
+0x0007D0
+0x000BF5
+0x000DAC
+0x000BF5
+0x0007D0
+0x0003AB
+0x0001F4
+0x0003AB
+0x0007D0</Bus1Data>
+  <Bus2Data />
+  <Code>// First-order low pass filter
+// Adapted from MAGNUS LUNDIN: http://arttools.blogspot.se/2016/02/psoc-5lp-dfb-assembler.html
+// Also see the Excel workbook with sample data: 1st_order_low_pass.xlsx
+
+// Equation:
+// y[n] = a[1] * y[n-1] + b[0] * x[n]
+//
+// a[1]     = [DataRam_A] [0] = 0x733333 = 0.9
+// y[n-1]   = [MAC] Accum (prior MAC result)
+// b[0]     = [DataRam_A] [1] = 0x0CCCCC = 0.1  (1 minus alpha)
+// x[n]     = [Stage_A] bus in Value
+
+initial:
+    // ------------------------
+    // Setup and initialization
+    // ------------------------
+
+    // [acu]    Clear
+    // [alu]    Set to zero
+    acu(clear, clear) dmux(sa, sa) alu(set0) mac(hold)
+
+    // Set modulus arithmentic [ON]
+    // Unconditional jump to [wait_for_in1]
+    acu(setmod, setmod) dmux(sa, sa) alu(hold) mac(clra) jmp(eob, wait_for_in1)
+
+wait_for_in1:
+    // -------------------------------------------------------
+    // Wait for data to be written to Staging Register Input 1
+    // -------------------------------------------------------
+
+    // [acu]    Move back to DataRam start address 0
+    // JUMP:    Is value [in1] register populated with Stage_A data?
+    //          [True]   Value loaded - go to [dataRead]
+    //          [False]  Loop to [wait_for_in1]
+    acu(clear, clear) dmux(sa, sa) alu(hold) mac(hold) jmpl(in1, dataRead)
+
+dataRead:
+    // ----------------------------------------
+    // Run the first order low pass calculation
+    // ----------------------------------------
+
+    // Multiply     ALU out with RAMA[0] and place in cleared MAC ACC
+    // [acu_a]      Pointing to address 0x0: [a1] coefficient
+    // [dmux]       Set up to load [a1] coefficient from DataRam_A[0] in next cycle
+    // [alu]        Set up to output this cycle's calculation result in next loop (where y[n-1] is required)
+    acu(hold, hold) dmux(sra, sa) alu(setb) mac(clra) 
+
+    // Read staging register A to MAC port B and multiply with RAMA[1]
+    // [acu]        Move to [b0] coefficient
+    // [dmux]       Set up to move [b0] coefficient value to [mac].a    
+    // [mac].a      Load [a1] coefficient from DtaRam_A[0] -&gt; [Mux_2A] pipeline
+    // [mac].b      Load prior calculation result y[n-1] from [Shifter] -&gt; [Mux_1B] -&gt; [Mux_2B]
+    // [alu]        Load prior calculation result y[n-1] from [Shifter] -&gt; [Mux_1B] -&gt; [Mux_2B]
+    acu(incr, hold) addr(1) dmux(sra, ba) alu(hold) mac(macc)
+
+    //Move MAC o/p to ALU
+    // [mac].a      Load coefficient [b0] 0.0999999 for multiply
+    // [mac].b      Load x[n] value for multiply from Stage_A
+    // [mac].out    Contains macc result of a[1] * y[n-1]
+    acu(hold, hold) dmux(sm, sm) alu(seta) mac(hold) 
+
+    //Wait for ALU output
+    // [mac].out    Outputs the value [a1] * y[n-1] + b[0] *  x[n]
+    acu(hold, hold) dmux(sm, sm) alu(hold) mac(hold)
+
+    // [hold_A]     Write [mac].out
+    // Unconditional jump to [wait_for_in1]
+    acu(hold, hold) addr(1) dmux(sa, sa) alu(hold) mac(hold) write(bus) jmp(eob, wait_for_in1)
+
+area data_a 
+org 0
+dw 0x733333 // [a1] = 0.9
+dw 0x0CCCCC // [b0] = 0.1
+//dw 0x600000 // [a1] = 0.75
+//dw 0x200000 // [b0] = 0.25
+</Code>
+  <CyclesToRun>20</CyclesToRun>
+  <InputSequence />
+</DFBProject>
