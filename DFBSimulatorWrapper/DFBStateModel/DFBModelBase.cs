@@ -226,13 +226,21 @@ namespace DFBSimulatorWrapper.DFBStateModel
 					if (line.StartsWith("area")) { break; }
 
 					// break if we reach a code label (areas may be declared above or below asm code)
-					var comment2StartIdx = line.IndexOf("//");
+					var commentStartIdx2 = line.IndexOf("//");
 					string lineBeginning = line;
-					if (comment2StartIdx > 0)
+					if (commentStartIdx2 > 0)
 					{
-						lineBeginning = line.Substring(0, comment2StartIdx);
+						lineBeginning = line.Substring(0, commentStartIdx2);
 					}
-					if (line.Contains(":")) { break; }
+					// Check if we've hit a label
+					if(commentStartIdx2 > 0)
+					{
+						if (line.Substring(0, commentStartIdx2).Contains(":")) { break; }
+					}
+					else
+					{
+						if (line.Contains(":")) { break; }
+					}
 				}
 			}
 

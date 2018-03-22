@@ -14,10 +14,11 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		#region Private Members
 
 		public static int VALUE_WIDTH = 6;
-		public static int PIPELINE_DELAY = 0;
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 0;
 
 		/// <summary>
 		/// Output fixed to hex format

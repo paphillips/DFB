@@ -1,4 +1,8 @@
-﻿using AutoMapper;
+﻿// defined: use a single thread
+// not defined: thread count = (# logical processors on system - 1)
+//#define useSingleThread
+
+using AutoMapper;
 using DFB_v1_40;
 using DFB_v1_40.Asm;
 using DFB_v1_40.Simulator;
@@ -10,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DFBProject;
 
 namespace DFBSimulatorWrapper
 {
@@ -17,9 +22,6 @@ namespace DFBSimulatorWrapper
 	{
 		#region Constants
 
-		// True: single thread
-		// False: thread count = (# logical processors on system - 1)
-		private const bool useSingleThread = false;
 
 		#endregion
 		#region Members
@@ -95,8 +97,8 @@ namespace DFBSimulatorWrapper
 
 			simulatorHistory = new List<CySimulator>();
 
-#if (useSingleThread)
-				batchSize = 1;
+#if useSingleThread
+			batchSize = 1;
 #else
 			batchSize = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : 1;
 #endif

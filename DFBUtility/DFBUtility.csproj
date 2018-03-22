@@ -55,13 +55,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="antlr.runtime">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Cypress\PSoC Creator\4.0\PSoC Creator\bin\antlr.runtime.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\..\Program Files (x86)\Cypress\PSoC Creator\4.0\PSoC Creator\bin\antlr.runtime.dll</HintPath>
     </Reference>
     <Reference Include="AutoMapper, Version=6.2.2.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
       <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
     </Reference>
     <Reference Include="cydsextensions">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Cypress\PSoC Creator\4.0\PSoC Creator\bin\cydsextensions.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\..\Program Files (x86)\Cypress\PSoC Creator\4.0\PSoC Creator\bin\cydsextensions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="DFB_v1_40, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -101,7 +102,6 @@
     <Compile Include="AboutBox.Designer.cs">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="DFBProject.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -121,7 +121,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="Documentation\DFB Utility Help.docx" />
-    <Content Include="Documentation\DFB Utility Help.pdf" />
+    <None Include="Documentation\DFB Utility Help.pdf" />
+    <None Include="Documentation\Dependencies_Setup.rtf" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\DFBUtility.Classes.DFBProject.datasource" />
     <None Include="Properties\DataSources\DFBUtility.Classes.InputSequence.datasource" />
@@ -140,9 +141,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Samples\Samples on www.dfbdev.com.url" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="stdole">
@@ -156,6 +160,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\logo.ico" />
     <None Include="Resources\FolderOpen_24x.png" />
     <None Include="Resources\FolderOpen_48x.png" />
     <None Include="Resources\BuildSolution_64x.png" />
@@ -191,15 +196,6 @@
     <Content Include="Documentation\Figures\09_CallDiagramTab.png" />
     <Content Include="Documentation\Figures\10_HoldABTabs.png" />
     <Content Include="Documentation\Figures\11_DiagramArea.png" />
-    <Content Include="TestAsms\DataRamModel1.txt" />
-    <Content Include="TestAsms\mux_sra.txt" />
-    <Content Include="TestAsms\mux_sa.txt" />
-    <Content Include="TestAsms\mux_ba.txt" />
-    <Content Include="TestAsms\mux_sra_bd1.txt" />
-    <Content Include="TestAsms\mux_sa_bd1.txt" />
-    <Content Include="TestAsms\mux_ba_bd1.txt" />
-    <Content Include="TestAsms\load_and_filter_bd1.txt" />
-    <Content Include="TestAsms\load_and_filter.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -214,13 +210,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DFBPluginModel\DFBPluginModel.csproj">
+      <Project>{610a089f-c346-4bda-bb0a-2ba95ab7ac6b}</Project>
+      <Name>DFBPluginModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DFBProject\DFBProject.csproj">
+      <Project>{4fff622b-a11c-4097-97ea-d31c79684ed6}</Project>
+      <Name>DFBProject</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DFBSimulatorWrapper\DFBSimulatorWrapper.csproj">
       <Project>{34ea010b-26bb-4ce3-bd2e-2e2ce5db5b05}</Project>
       <Name>DFBSimulatorWrapper</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Samples\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

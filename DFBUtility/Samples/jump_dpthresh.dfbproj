@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
-<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Version>1.0.0.0</Version>
-  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\jump_dpthresh.dfbproj</ProjectFileName>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Samples\jump_dpthresh.dfbproj</ProjectFileName>
   <Bus1Data>0x000004
 0x000003
 0x000004
 0x000005</Bus1Data>
   <Bus2Data />
-  <Code>// Example of using datapath threshold flag to branch (asserted when the ALU detects a sign change)
-// Stage_A input results in several sign changes as output goes from positive to negative and back
+  <Code>// [title] Datapath threshold flag jump
+// [brief] Example of using datapath threshold flag to branch (asserted when the ALU detects a sign change). Stage_A input results in several sign changes as output goes from positive to negative and back
+// [categories] Examples - jump conditions
 
 init:
     // ----------------------------------------
@@ -29,7 +30,9 @@ init:
     // [alu]        Data values are loaded off the datapath
     acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
 
-    // Unconditional jump: go to [dpsign_check]
+     // Conditional jump: Is dpthresh asserted?
+    //              [true]  Jump to [sign_changed]
+    //              [false] Fall through to [sign_did_not_change]
     // [alu]        ALU output is put on the datapath
     acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(dpthresh, sign_changed)
 
@@ -55,4 +58,4 @@ dw 0x000004    // [SUBTRACTION_VAL_1]
 </Code>
   <CyclesToRun>20</CyclesToRun>
   <InputSequence />
-</DFBProject>
+</Project>

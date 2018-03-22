@@ -22,7 +22,6 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		private const int RAM_LENGTH = 128;
 		private const int VALUE_WIDTH = 6;
 		private const int ADDR_WIDTH = 2;
-		private const int PIPELINE_DELAY = 0;
 		private long[] ram;
 		private int? address;
 		private int? addressPrev;
@@ -33,6 +32,8 @@ namespace DFBSimulatorWrapper.DFBStateModel
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 0;
 
 		/// <summary>
 		/// Left (Bank A) or right (Bank B) 7 bits of the ACU ram array

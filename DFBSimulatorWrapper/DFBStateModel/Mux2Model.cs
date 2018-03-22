@@ -14,7 +14,6 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		#region Private Members
 
 		private const int VALUE_WIDTH = 6;
-		private const int PIPELINE_DELAY = 1;
 		private LabeledValue<long?> input1;
 		private LabeledValue<DevicePort?> input1src;
 		private LabeledValue<long?> input0;
@@ -22,6 +21,8 @@ namespace DFBSimulatorWrapper.DFBStateModel
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 1;
 
 		/// <summary>
 		/// Input value latched at current cycle [now]

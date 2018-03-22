@@ -71,7 +71,6 @@
     <Compile Include="Classes\CyInstEdit_v1.cs" />
     <Compile Include="Classes\CyInstQuery.cs" />
     <Compile Include="Classes\FormatProviderBoolean.cs" />
-    <Compile Include="Classes\InputSequence.cs" />
     <Compile Include="Classes\PrivateValueAccessor.cs" />
     <Compile Include="Classes\SimProgressReport.cs" />
     <Compile Include="DFBStateFrame.cs" />
@@ -135,6 +134,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DFBProject\DFBProject.csproj">
+      <Project>{4fff622b-a11c-4097-97ea-d31c79684ed6}</Project>
+      <Name>DFBProject</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

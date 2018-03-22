@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
-<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Version>1.0.0.0</Version>
-  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\jump_dpsign.dfbproj</ProjectFileName>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Samples\jump_dpsign.dfbproj</ProjectFileName>
   <Bus1Data>0x000005
 0x000004
 0x000003</Bus1Data>
   <Bus2Data />
-  <Code>// Example of using datapath sign flag to branch (asserted when the ALU output is negative)
+  <Code>// [title] Datapath sign jump
+// [brief] Example of using datapath sign flag to branch (asserted when the ALU output is negative)
+// [categories] Examples - jump conditions
 
 init:
     // ----------------------------------------
@@ -20,14 +22,17 @@ init:
         
     // [dmux].a     Set up to read bus Stage_A to ALU
     // [dmux].b     Set up to read [SUBTRACTION_VAL_1] from DataRam_A to ALU
-    // [alu]        Set up to subtract b from a
+    // [alu]        Set up to subtract b from a - 2 instruction pipeline delay
+    // [addr]       Select Bus in 1 (Stage_A) - 1 instruction pipeline delay
     acu(hold, hold) addr(1) dmux(ba, sra) alu(subb) mac(hold)
 
     // Pipeline delay
     // [alu]        Data values are loaded off the datapath
     acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
 
-    // Unconditional jump: go to [dpsign_check]
+    // Conditional jump: Is dpsign asserted?
+    //              [true]  Jump to [sign_is_negative]
+    //              [false] Fall through to [sign_is_positive]
     // [alu]        ALU output is put on the datapath
     acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(dpsign, sign_is_negative)
 
@@ -53,4 +58,4 @@ dw 0x000004    // [SUBTRACTION_VAL_1]
 </Code>
   <CyclesToRun>14</CyclesToRun>
   <InputSequence />
-</DFBProject>
+</Project>

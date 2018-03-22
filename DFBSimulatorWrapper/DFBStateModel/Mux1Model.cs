@@ -14,9 +14,13 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		#region Private Members
 
 		private const int VALUE_WIDTH = 6;
-		private const int PIPELINE_DELAY = 1;
 
 		#endregion
+		#region Public Members
+
+		public static int PIPELINE_DELAY => 1;
+
+		#endregion	
 		#region Constructor
 
 		/// <summary>

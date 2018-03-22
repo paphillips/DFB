@@ -20,11 +20,12 @@ namespace DFBSimulatorWrapper.DFBStateModel
 
 		public const int VALUE_WIDTH = 6;
 		public const int ADDR_WIDTH = 2;
-		public const int PIPELINE_DELAY = 1;
 		private LabeledValue<long?> input;
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 1;
 
 		/// <summary>
 		/// Input value latched at current cycle [now] from instruction with 1 pipelined instr delay

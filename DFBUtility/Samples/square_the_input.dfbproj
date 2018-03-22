@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Version>1.0.0.0</Version>
-  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\square_the_input.dfbproj</ProjectFileName>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Samples\square_the_input.dfbproj</ProjectFileName>
   <Bus1Data>0x7FFFFF
 0x400000
 0x0CCCCD
@@ -10,37 +10,39 @@
 0x800001
 0x800000</Bus1Data>
   <Bus2Data />
-  <Code>// Example demonstrating a calculation to square the input value
+  <Code>// [title] Square the input
+// [brief] This is a basic example of how to square the value coming in on the Stage input.
+// [categories] Examples - math
 
 initial:
-    // ------------------------
-    // Setup and initialization
-    // ------------------------
+    // ---------------------------------
+    // [brief]  Setup and initialization
+    // ---------------------------------
 
     // [acu]    Clear
     // [alu]    Set to zero
     acu(clear, clear) dmux(sa, sa) alu(set0) mac(hold)
 
-    // Set modulus arithmentic [ON]
-    // Unconditional jump to [wait_for_in1]
+    // [acu]    Set modulus arithmentic [ON]
+    // [jmp]    Unconditional jump to [wait_for_in1]
     acu(setmod, setmod) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, wait_for_in1)
 
 wait_for_in1:
-    // -------------------------------------------------------
-    // Wait for data to be written to Staging Register Input 1
-    // -------------------------------------------------------
+    // ----------------------------------------------------------------
+    // [brief]  Wait for data to be written to Staging Register Input 1
+    // ----------------------------------------------------------------
 
-    // JUMP:    Is value [in1] register populated with Stage_A data?
-    //          [True]   Value loaded - go to [dataRead]
-    //          [False]  Loop to [wait_for_in1]
-    // [dmux]   Set up to load Stage_A value into [mac].a and [mac].b
-    // [mac]    Set up to multiply a * b without adding any accumulated value
+    // [jmpl]:      Is value [in1] register populated with Stage_A data?
+    //                  [True]   Value loaded - go to [dataRead]
+    //                  [False]  Loop to [wait_for_in1]
+    // [dmux].a     Set up to load Stage_A value into [mac].a and [mac].b
+    // [mac]        Set up to multiply a * b without adding any accumulated value
     acu(hold, hold) addr(1) dmux(bm, bm) alu(hold) mac(clra) jmpl(in1, dataRead)
 
 dataRead:
-    // -----------------------------------------
-    // Run the calculation and output the result
-    // -----------------------------------------
+    // --------------------------------------------------
+    // [brief]  Run the calculation and output the result
+    // --------------------------------------------------
 
     // [mac]    Loads a and b from Stage_A -&gt; Mux_0 -&gt; Mux_1 -&gt; Mux_2 -&gt; mac
     acu(hold, hold) dmux(sm, sm) alu(seta) mac(hold)
@@ -53,7 +55,8 @@ dataRead:
     acu(hold, hold) dmux(sm, sm) alu(seta) mac(hold)
 
     // [write]  Write calculation result to [Hold_A]
+    // [jmp]    Unconditional jump to [wait_for_in1]
     acu(hold, hold) addr(1) dmux(sm, sm) alu(hold) mac(hold) write(abus) jmp(eob, wait_for_in1)</Code>
-  <CyclesToRun>40</CyclesToRun>
+  <CyclesToRun>12</CyclesToRun>
   <InputSequence />
-</DFBProject>
+</Project>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<DFBProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Version>1.0.0.0</Version>
-  <ProjectFileName>C:\Users\Paul\Documents\DFB Utility\Samples\saturation.dfbproj</ProjectFileName>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Samples\jump_saturation.dfbproj</ProjectFileName>
   <Bus1Data>0x7FFFFA
 0x000000
 0x7FFFFB
@@ -15,7 +15,9 @@
 0x7FFFFF
 0x000000</Bus1Data>
   <Bus2Data />
-  <Code>// Example of using saturation flag to branch
+  <Code>// [title] Datapath saturation flag jump
+// [brief] Example of using datapath saturation flag flag to branch (asserted when the ALU detects a saturation condition). Stage_A input results in several sign changes as output goes from positive to negative and back
+// [categories] Examples - jump conditions
 
 init:
     // [alu]    Enable saturation detection
@@ -64,4 +66,4 @@ saturated:
     acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, init)</Code>
   <CyclesToRun>50</CyclesToRun>
   <InputSequence />
-</DFBProject>
+</Project>

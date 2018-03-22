@@ -26,6 +26,8 @@ namespace DFBSimulatorWrapper
 		private static Wrapper dfbSimulatorWrapper;
 		private List<DFBStateFrame> stateFrames;
 
+		public List<CodeState> CodeStates => codeStates;
+
 		/// <summary>
 		/// Current value format
 		/// </summary>
@@ -34,24 +36,12 @@ namespace DFBSimulatorWrapper
 		/// <summary>
 		/// List of state frames for each cycle
 		/// </summary>
-		public List<DFBStateFrame> StateFrames
-		{
-			get
-			{
-				return stateFrames;
-			}
-		}
+		public List<DFBStateFrame> StateFrames => stateFrames;
 
 		/// <summary>
 		/// Call diagram
 		/// </summary>
-		public string CallDiagramSvg
-		{
-			get
-			{
-				return callDiagramSvg;
-			}
-		}
+		public string CallDiagramSvg => callDiagramSvg;
 
 		#endregion
 		#region Constructor

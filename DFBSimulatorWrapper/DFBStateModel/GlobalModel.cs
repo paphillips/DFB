@@ -17,7 +17,6 @@ namespace DFBSimulatorWrapper.DFBStateModel
 
 		private const int VALUE_WIDTH = 6;
 		private const int ADDR_WIDTH = 2;
-		private const int PIPELINE_DELAY = 0;
 
 		#endregion
 		#region Members
@@ -37,6 +36,8 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		private int? sem_en2;
 		private int? dpsign;
 		private int? dpeq;
+
+		public static int PIPELINE_DELAY => 0;
 
 		/// <summary>
 		/// Global enable 0

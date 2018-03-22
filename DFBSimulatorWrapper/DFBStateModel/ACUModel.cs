@@ -15,7 +15,6 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		private const int RAM_LENGTH = 16;
 		private const int VALUE_WIDTH = 2;
 		private const int ADDR_WIDTH = 1;
-		private const int PIPELINE_DELAY = 0;
 		private int? reg_reg;
 		private int? reg_freg;
 		private int? reg_mreg;
@@ -29,6 +28,8 @@ namespace DFBSimulatorWrapper.DFBStateModel
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 0;
 
 		/// <summary>
 		/// reg is the current DataRam address

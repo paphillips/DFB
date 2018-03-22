@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DFBSimulatorWrapper", "DFBSimulatorWrapper\DFBSimulatorWrapper.csproj", "{34EA010B-26BB-4CE3-BD2E-2E2CE5DB5B05}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DFBUtility", "DFBUtility\DFBUtility.csproj", "{80DFE2E4-E8D5-45E0-A5C8-819464FF04D2}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DFBUtilityInstaller", "DFBUtilityInstaller\DFBUtilityInstaller.vdproj", "{96BB7A29-8023-41DF-AF72-B5704830907B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DFBPluginModel", "DFBPluginModel\DFBPluginModel.csproj", "{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DFBProject", "DFBProject\DFBProject.csproj", "{4FFF622B-A11C-4097-97EA-D31C79684ED6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,9 +41,28 @@ Global
 		{96BB7A29-8023-41DF-AF72-B5704830907B}.Debug|x86.ActiveCfg = Debug
 		{96BB7A29-8023-41DF-AF72-B5704830907B}.Release|Any CPU.ActiveCfg = Release
 		{96BB7A29-8023-41DF-AF72-B5704830907B}.Release|x86.ActiveCfg = Release
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Debug|x86.Build.0 = Debug|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Release|x86.ActiveCfg = Release|Any CPU
+		{610A089F-C346-4BDA-BB0A-2BA95AB7AC6B}.Release|x86.Build.0 = Release|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Debug|x86.Build.0 = Debug|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Release|x86.ActiveCfg = Release|Any CPU
+		{4FFF622B-A11C-4097-97EA-D31C79684ED6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FEB7F84F-FB64-441C-A610-C1F569212C6D}
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

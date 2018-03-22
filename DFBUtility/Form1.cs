@@ -1,5 +1,6 @@
 ﻿using DFB_v1_40;
 using DFB_v1_40.Asm;
+using DFBPluginModel;
 using DFBSimulatorWrapper;
 using DFBSimulatorWrapper.DFBStateModel;
 using FastColoredTextBoxNS;
@@ -9,11 +10,18 @@ using System.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Linq;
+using DFBProject;
+using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace DFBUtility
 {
@@ -26,9 +34,10 @@ namespace DFBUtility
 		const decimal dfbMinDec = -1.0000000m;
 		const decimal dfbMaxDec = 0.9999999m;
 
+		private List<IPlugin> plugins = new List<IPlugin>();
 		private float dpiX;
 		private float dpiY;
-		public DFBProject project;
+		public Project project;
 		Wrapper sim;
 		bool simRunning = false;
 		CyParameters m_parameters;
@@ -46,7 +55,7 @@ namespace DFBUtility
 
 		string defaultPath;
 		string[] args;
-		
+
 		#endregion
 		#region Form
 
@@ -62,8 +71,10 @@ namespace DFBUtility
 		{
 			try
 			{
+				LoadPlugins();
+
 				defaultPath = Path.Combine(
-					Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), 
+					Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments),
 					"DFB Utility");
 
 				Directory.CreateDirectory(defaultPath);
@@ -119,7 +130,9 @@ namespace DFBUtility
 				AddToolstripCheckbox_HoldA();
 				AddToolstripCheckbox_HoldB();
 
-				project = new DFBProject();
+				project = new Project();
+				UpdatePluginContext();
+
 				saveFileDialog1.AddExtension = true;
 				bsInputSequence.DataSource = project.InputSequence;
 
@@ -157,7 +170,7 @@ namespace DFBUtility
 
 				openFileDialog1.InitialDirectory = defaultPath;
 
-				if(args != null && args.Length > 0 && File.Exists(args[0]))
+				if (args != null && args.Length > 0 && File.Exists(args[0]))
 				{
 					OpenProject(args[0]);
 				}
@@ -166,12 +179,15 @@ namespace DFBUtility
 			}
 			catch (Exception ex) { LogException(ex); }
 		}
-		
+
 		private async void RunSimulations()
 		{
 			try
 			{
 				if (fctb_Code.Text.Length == 0) { return; }
+
+				UpdatePluginContext();
+				RunPluginPreSimulate();
 
 				tbCurrCycle.Text = "";
 				lblCycleEnd.Text = "";
@@ -243,7 +259,6 @@ namespace DFBUtility
 				else if (rbO2DPTHRESH_Checked) { m_parameters.InitialOutput2Source = CyOut2SourceOptions.DPTHRESH; }
 				else if (rbO2SEM2_Checked) { m_parameters.InitialOutput2Source = CyOut2SourceOptions.SEM2; }
 				m_parameters.InitialOutput2Source = CyOut2SourceOptions.SEM2;
-
 
 				byte b = 0;
 				if (intSem2CB_Checked) { b = (byte)(b + 16); }
@@ -326,7 +341,8 @@ namespace DFBUtility
 				Populate_HoldA_Tab(state);
 				Populate_HoldB_Tab(state);
 
-				//SetSimState(false);
+				UpdatePluginContext();
+				RunPluginPostSimulate();
 			}
 			catch (Exception ex)
 			{
@@ -443,6 +459,162 @@ namespace DFBUtility
 		}
 
 		#endregion
+		#region Plugins
+
+		private void LoadPlugins()
+		{
+			var pluginsList = GenericPluginLoader<IPlugin>.LoadPlugins(Environment.CurrentDirectory);
+			foreach (var item in pluginsList)
+			{
+				try
+				{
+					plugins.Add(item);
+					tsddPlugins.DropDownItems.Add(item.Menu);
+				}
+				catch (Exception ex)
+				{
+					LogException(ex);
+				}
+			}
+			if (plugins.Count == 0)
+			{
+				tsddPlugins.Visible = false;
+			}
+			else { tsddPlugins.Visible = true; }
+		}
+
+		private void UpdatePluginContext()
+		{
+			var context = new PluginContext();
+
+			var height = ConvertThumbSetting("thumbHeight", 220);
+			var width = ConvertThumbSetting("thumbWidth", 220);
+
+			var fullImage = new Bitmap(fctb_Code.Width, fctb_Code.Height);
+			
+			fctb_Code.DrawToBitmap(fullImage, new Rectangle(0, 0, fctb_Code.Width, fctb_Code.Height));
+
+			// First resize to smaller dimension, maintaining aspect ratio
+			float scaleHeight = (float)height / (float)fullImage.Height;
+			float scaleWidth = (float)width / (float)fullImage.Width;
+			float scale = Math.Max(scaleHeight, scaleWidth);
+			var resized = new Bitmap(
+				fullImage, 
+				(int)(fullImage.Width * scale), 
+				(int)(fullImage.Height * scale));
+
+			// Crop
+			//context.CodeImage = CropImage(resized, 0, 0, width, height, ImageFormat.Png);
+			context.CodeImage = CropImage(fullImage, 0, 0, width, height, ImageFormat.Png);
+			context.Project = project;
+			context.State = state;
+
+			plugins.ForEach(x => x.ContextChanged(context));
+		}
+
+		/// <summary>
+		/// Resizes the image.
+		/// </summary>
+		/// <param name="img">The image to be resized</param>
+		/// <param name="targetWidth">Width of the target</param>
+		/// <param name="targetHeight">Height of the target</param>
+		/// <param name="imageFormat">The image format</param>
+		/// <returns>A resized image</returns>
+		private Image ResizeImage(Image img, int targetWidth, int targetHeight, ImageFormat imageFormat)
+		{
+			return CropAndResizeImage(img, targetWidth, targetHeight, 0, 0, img.Width, img.Height, imageFormat);
+		}
+
+		/// <summary>
+		/// Crops the image.
+		/// </summary>
+		/// <param name="img">The image</param>
+		/// <param name="x1">The position x1.</param>
+		/// <param name="y1">The position y1.</param>
+		/// <param name="x2">The position x2.</param>
+		/// <param name="y2">The position y2.</param>
+		/// <param name="imageFormat">The image format.</param>
+		/// <returns>A cropped image.</returns>
+		private Image CropImage(Image img, int x1, int y1, int x2, int y2, ImageFormat imageFormat)
+		{
+			return CropAndResizeImage(img, x2 - x1, y2 - y1, x1, y1, x2, y2, imageFormat);
+		}
+
+		/// <summary>
+		/// Crops and resizes the image.
+		/// </summary>
+		/// <param name="img">The image to be processed</param>
+		/// <param name="targetWidth">Width of the target</param>
+		/// <param name="targetHeight">Height of the target</param>
+		/// <param name="x1">The position x1</param>
+		/// <param name="y1">The position y1</param>
+		/// <param name="x2">The position x2</param>
+		/// <param name="y2">The position y2</param>
+		/// <param name="imageFormat">The image format</param>
+		/// <returns>A cropped and resized image</returns>
+		private Image CropAndResizeImage(
+			Image img, 
+			int targetWidth, 
+			int targetHeight, 
+			int x1, 
+			int y1, 
+			int x2, 
+			int y2, 
+			ImageFormat imageFormat)
+		{
+			var bmp = new Bitmap(targetWidth, targetHeight);
+			Graphics g = Graphics.FromImage(bmp);
+
+			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			g.SmoothingMode = SmoothingMode.HighQuality;
+			g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+			g.CompositingQuality = CompositingQuality.HighQuality;
+
+			int width = x2 - x1;
+			int height = y2 - y1;
+
+			g.DrawImage(img, new Rectangle(0, 0, targetWidth, targetHeight), x1, y1, width, height, GraphicsUnit.Pixel);
+
+			var memStream = new MemoryStream();
+			bmp.Save(memStream, imageFormat);
+			return Image.FromStream(memStream);
+		}
+
+		/// <summary>
+		/// Retrieves the value from the config file and returns it if valid, otherwise returns the defaultVal
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="defaultVal"></param>
+		/// <returns></returns>
+		private int ConvertThumbSetting(string key, int defaultVal)
+		{
+			var settingVal = ConfigurationManager.AppSettings.GetValues(key);
+			if (settingVal != null && settingVal.Length == 1 && !string.IsNullOrEmpty(settingVal[0]))
+			{
+				int temp;
+				if (int.TryParse(settingVal[0], out temp))
+				{
+					return temp;
+				}
+				else
+				{
+					return defaultVal;
+				}
+			}
+			return defaultVal;
+		}
+
+		private void RunPluginPreSimulate()
+		{
+			plugins.ForEach(x => x.PreSimulate());
+		}
+
+		private void RunPluginPostSimulate()
+		{
+			plugins.ForEach(x => x.PostSimulate());
+		}
+
+		#endregion
 		#region Top Toolbar
 
 		private void btnProjectOpen_Click(object sender, EventArgs e)
@@ -517,7 +689,9 @@ namespace DFBUtility
 					}
 				}
 
-				project = new DFBProject();
+				project = new Project();
+				UpdatePluginContext();
+
 				bsInputSequence.DataSource = project.InputSequence;
 				ClearControls();
 
@@ -547,6 +721,7 @@ namespace DFBUtility
 		{
 			project.Open(path);
 			project.ProjectFileName = path;
+			UpdatePluginContext();
 
 			tbNbrCycles.Text = project.CyclesToRun.ToString();
 			fctb_BusIn1.Text = project.Bus1Data;
@@ -608,6 +783,8 @@ namespace DFBUtility
 			project.Code = fctb_Code.Text;
 			project.CyclesToRun = int.Parse(tbNbrCycles.Text);
 			project.Save();
+			UpdatePluginContext();
+
 			fctb_Code_IsDirty = false;
 			fctb_BusIn1_IsDirty = false;
 			fctb_BusIn2_IsDirty = false;
@@ -615,6 +792,7 @@ namespace DFBUtility
 			tbNbrCycles_IsDirty = false;
 
 			UpdateFormDirty();
+			UpdatePluginContext();
 
 			return true;
 		}
@@ -928,7 +1106,7 @@ namespace DFBUtility
 
 			fctbValConv_Hex.Clear();
 			fctbValConv_DFB.Clear();
-			
+
 			for (int i = 0; i < fctbValConv_Int.Lines.Count; i++)
 			{
 				var line = fctbValConv_Int.Lines[i];
@@ -1752,7 +1930,7 @@ namespace DFBUtility
 			TryMsgPrint("\n-------------------", Color.Red);
 			TryMsgPrint("\n" + ex.Message, Color.Red);
 			TryMsgPrint("\n" + ex.StackTrace, Color.Black);
-			if(ex.InnerException != null)
+			if (ex.InnerException != null)
 			{
 				LogException(ex.InnerException);
 			}

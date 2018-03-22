@@ -14,11 +14,12 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		#region Private Members
 
 		public const int VALUE_WIDTH = 6;
-		public const int PIPELINE_DELAY = 1;
 		private List<string> addresses;
 
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 1;
 
 		/// <summary>
 		/// Address value associated with dmux command

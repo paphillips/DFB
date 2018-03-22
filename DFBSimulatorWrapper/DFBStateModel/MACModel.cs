@@ -23,12 +23,13 @@ namespace DFBSimulatorWrapper.DFBStateModel
 		#region Private Members
 		
 		private const int VALUE_WIDTH = 6;
-		private const int PIPELINE_DELAY = 2;
 		private List<PipelineItem> pipelineItems;
 		protected string outputFormula;
-		
+
 		#endregion
 		#region Public Members
+
+		public static int PIPELINE_DELAY => 2;
 
 		/// <summary>
 		/// Values

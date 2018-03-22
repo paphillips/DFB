@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,12 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-using DFBSimulatorWrapper;
 
-namespace DFBUtility
+namespace DFBProject
 {
-
-	public class DFBProject
+	public class Project
 	{
 		public string Version { get; set; }
 		public string ProjectFileName { get; set; }
@@ -23,7 +20,7 @@ namespace DFBUtility
 		public int CyclesToRun { get; set; }
 		public List<InputSequence> InputSequence { get; set; }
 
-		public DFBProject()
+		public Project()
 		{
 			InputSequence = new List<InputSequence>();
 			Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -38,7 +35,7 @@ namespace DFBUtility
 		{
 			if (File.Exists(projectFileName))
 			{
-				var temp = DeSerializeObject<DFBProject>(projectFileName);
+				var temp = DeSerializeObject<Project>(projectFileName);
 				UpgradeCheck();
 
 				this.Version = temp.Version;
@@ -84,7 +81,7 @@ namespace DFBUtility
 		/// <typeparam name="T"></typeparam>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
-		public T DeSerializeObject<T>(string fileName)
+		private T DeSerializeObject<T>(string fileName)
 		{
 			if (string.IsNullOrEmpty(fileName)) { return default(T); }
 
@@ -111,7 +108,7 @@ namespace DFBUtility
 			return objectOut;
 		}
 
-		public void UpgradeCheck()
+		private void UpgradeCheck()
 		{
 			var codeVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 			if (!this.Version.Equals(codeVersion))

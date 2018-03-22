@@ -25,6 +25,7 @@ namespace DFBSimulatorWrapper.Diagram.CallDiagram
 	{
 		#region Constants
 
+		private const int callDiagramMaxLabelChars = 25;
 		private string styleHeaderBGColor = Enum.GetName(typeof(KnownColor), KnownColor.LemonChiffon);
 		private string styleInactiveCellBGColor = Enum.GetName(typeof(KnownColor), KnownColor.WhiteSmoke);
 		private string styleKeyCellBGColor = Enum.GetName(typeof(KnownColor), KnownColor.AliceBlue);
@@ -62,7 +63,7 @@ namespace DFBSimulatorWrapper.Diagram.CallDiagram
 			// Graph
 			GraphViz.Graph graph = CreateGraph("dfb_call");
 
-			const double labelColWidth = 1.75f;
+			const double labelColWidth = 2.25f;
 			const double rowHeight = 1.5f;
 			double currCol_x = 0;
 			double currRow_y = 0;
@@ -230,7 +231,16 @@ namespace DFBSimulatorWrapper.Diagram.CallDiagram
 
 			// Header
 			var row = new HtmlTableRow();
-			AddHeader1Cell(row, null, 3, dfbStateFrame.CodeStateCycle.GroupName);
+			string label = null;
+			if (dfbStateFrame.CodeStateCycle.GroupName.Length > callDiagramMaxLabelChars)
+			{
+				label = dfbStateFrame.CodeStateCycle.GroupName.Substring(0, callDiagramMaxLabelChars - 3) + "...";
+			}
+			else
+			{
+				label = dfbStateFrame.CodeStateCycle.GroupName;
+			}
+			AddHeader1Cell(row, null, 3, label);
 			table.Rows.Add(row);
 
 			// Details
@@ -345,7 +355,7 @@ namespace DFBSimulatorWrapper.Diagram.CallDiagram
 				fallThrough = false;
 			}
 
-			if(fallThrough)
+			if (fallThrough)
 			{
 				labels.Add("false");
 			}

@@ -140,6 +140,7 @@
 			this.btnStart = new System.Windows.Forms.ToolStripButton();
 			this.btnAbout = new System.Windows.Forms.ToolStripButton();
 			this.toolMain = new System.Windows.Forms.ToolStrip();
+			this.tsddPlugins = new System.Windows.Forms.ToolStripDropDownButton();
 			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitMain)).BeginInit();
 			this.splitMain.Panel1.SuspendLayout();
@@ -370,7 +371,7 @@
 			// bsInputSequence
 			// 
 			this.bsInputSequence.DataMember = "InputSequence";
-			this.bsInputSequence.DataSource = typeof(DFBUtility.DFBProject);
+			this.bsInputSequence.DataSource = typeof(DFBProject.Project);
 			// 
 			// toolStrip11
 			// 
@@ -836,6 +837,7 @@
 			this.imageList1.Images.SetKeyName(9, "ConvertPartition_64x.png");
 			this.imageList1.Images.SetKeyName(10, "ServiceQueueDestination_48x.png");
 			this.imageList1.Images.SetKeyName(11, "Hierarchy_48x.png");
+			this.imageList1.Images.SetKeyName(12, "CheckBox_32x.png");
 			// 
 			// tabLogAndRam
 			// 
@@ -1619,12 +1621,23 @@
             this.toolStripLabel1,
             this.tbNbrCycles,
             this.btnStart,
-            this.btnAbout});
+            this.btnAbout,
+            this.tsddPlugins});
 			this.toolMain.Location = new System.Drawing.Point(0, 0);
 			this.toolMain.Name = "toolMain";
+			this.toolMain.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
 			this.toolMain.Size = new System.Drawing.Size(1582, 47);
 			this.toolMain.TabIndex = 2;
 			this.toolMain.Text = "toolStrip1";
+			// 
+			// tsddPlugins
+			// 
+			this.tsddPlugins.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+			this.tsddPlugins.Image = ((System.Drawing.Image)(resources.GetObject("tsddPlugins.Image")));
+			this.tsddPlugins.ImageTransparentColor = System.Drawing.Color.Magenta;
+			this.tsddPlugins.Name = "tsddPlugins";
+			this.tsddPlugins.Size = new System.Drawing.Size(70, 44);
+			this.tsddPlugins.Text = "Plugins";
 			// 
 			// Form1
 			// 
@@ -1858,6 +1871,7 @@
 		private System.Windows.Forms.DataGridViewCheckBoxColumn semaphore0DataGridViewCheckBoxColumn;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn semaphore1DataGridViewCheckBoxColumn;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn semaphore2DataGridViewCheckBoxColumn;
+		private System.Windows.Forms.ToolStripDropDownButton tsddPlugins;
 	}
 }
 

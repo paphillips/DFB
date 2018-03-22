@@ -25,7 +25,7 @@ namespace DFBSimulatorWrapper.Diagram.StateDiagram
 	{
 		#region Constants
 
-		private const bool debugShowHiddenNodes = true;
+		private const bool debugShowHiddenNodes = false;
 
 		private string styleHeaderBGColor = Enum.GetName(typeof(KnownColor), KnownColor.LemonChiffon);
 		private string styleInactiveCellBGColor = Enum.GetName(typeof(KnownColor), KnownColor.WhiteSmoke);
