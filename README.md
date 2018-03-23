@@ -3,8 +3,7 @@ For the Cypress PSoC Digital Filter Block (DFB)
 
 Version 1.0
 
----
-:small_blue_diamond: [Check out examples and articles on the DFB Dev website here](http://www.dfbdev.com)
+:white_check_mark: [Check out examples and articles on the DFB Dev website here](http://www.dfbdev.com)
 ---
 
 [Download the latest installer here](https://github.com/paphillips/DFB/raw/master/DFBUtilityInstaller/Debug/DFBUtilityInstaller.msi)
