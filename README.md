@@ -5,6 +5,8 @@ Version 1.0
 
 [Download the latest installer here](https://github.com/paphillips/DFB/raw/master/DFBUtilityInstaller/Debug/DFBUtilityInstaller.msi)
 
+[Check out examples and articles on the DFB Dev website here](http://www.dfbdev.com)
+
 # Table of Contents
 
 * [General Operation](#general-operation)
