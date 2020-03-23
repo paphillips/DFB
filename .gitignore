@@ -1,0 +1,23 @@
+﻿*.suo
+/.vs/DFBUtilitySolution/DesignTimeBuild
+/.vs/DFBUtilitySolution/v15/Server/sqlite3/storage.ide-wal
+/.vs/DFBUtilitySolution/v15/Server/sqlite3/storage.ide-shm
+/.vs/DFBUtilitySolution/v15/Server/sqlite3/storage.ide
+/.vs/DFBUtilitySolution/v15/Server/sqlite3/db.lock
+/.vs/config
+/DFBPluginModel/bin/Debug
+/DFBPluginModel/obj/Debug
+*.user
+/DFBProject/bin/Debug
+/DFBProject/obj/Debug
+/DFBSimulatorWrapper/bin
+/DFBSimulatorWrapper/obj
+/DFBUtility/.vs
+/DFBUtility/bin/Debug
+/DFBUtility/obj
+/DFBUtility/Samples/~$kernel_moving_avg_recursive.xlsx
+/UpgradeLog2.htm
+/UpgradeLog.htm
+/DFBUtility/packages
+/packages
+/DFBUtility/Samples/kernel_moving_avg_recursive - Copy.dfbproj

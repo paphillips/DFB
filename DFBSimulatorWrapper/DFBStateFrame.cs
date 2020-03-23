@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -140,6 +141,7 @@ namespace DFBSimulatorWrapper
 			float dpiX,
 			float dpiY)
 		{
+			//var thread = Thread.CurrentContext.CurrentCulture;
 			// Update the SVG document to reflect the new size in points
 			var doc = XDocument.Parse(this.diagramSvg, LoadOptions.PreserveWhitespace);
 			var node = doc.Descendants().FirstOrDefault();

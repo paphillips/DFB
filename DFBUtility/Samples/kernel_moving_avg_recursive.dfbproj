@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Version>1.0.0.0</Version>
+  <ProjectFileName>C:\Users\Paul\Dropbox\MIDI\V0.9 Cypress + Composite IR Piezo\Software\_Code\DFBUtility\DFBUtility\Samples\kernel_moving_avg_recursive.dfbproj</ProjectFileName>
+  <Bus1Data>0x000064
+0x0000C8
+0x0001F4
+0x000064
+0x0001F4
+0x000384
+0x000320
+0x0002BC
+0x000064
+0x0001F4
+0x000258
+0x000190
+0x0002BC
+0x0000C8
+0x000258
+0x0002BC
+0x000320</Bus1Data>
+  <Bus2Data />
+  <Code>// [title]      Moving (Gliding) Average, Recursive Implementation
+// [brief]      Example of a moving average filter on the input signal using a recursive 
+//              algorithm, non-symmetric (one-side averaging), for fast execution. 'Recursive' 
+//              in this context means the result of one calculation is used in a future calculation.
+//              M + 4 cycle delay from first sample to first output. 6 cycle delay thereafter.
+// [categories] Examples - filter kernels
+// [author]     Paul Phillips
+// [date]       2018-04-01
+// [level]      medium
+
+// [equationbasic]        \( \Large y[i] = y[i - 1] + x[i] - x[i - M] \over M \)
+// [equationbasicterm]    x: input sample
+// [equationbasicterm]    y: output moving average result
+// [equationbasicterm]    i: current sample
+// [equationbasicterm]    M: # of samples in the moving average window
+
+// [strategy]   Moving average calculation is reduced to two multiple-accumulates and one addition.
+//              This strategy divides each term by M at each instruction via multiply, rather than
+//              waiting until the end, and re-orders y[i - 1] to the end:
+// [equationrealized]      \( \Large y[i] = \frac{x[i]}{M} + \frac{x[i - M]}{-M} + \frac{y[i - 1]}{M} \)
+// [equationrealizedterm]  \( x[i] * 1/M \quad \) Multiply-accumulate.  1/M is pre-calculated. x[i] = current input
+// [equationrealizedterm]  \( x[i - M] * -1/M \quad \) Multiply-accumulate. -1/M is pre-calculated. x[i - M] = sample before window
+// [equationrealizedterm]  \( y[i - 1] \quad \) ALU addition with MACC result from above two steps
+
+// [assumption] After inputs start, input samples and moving average calculation will be continuous and will not reset
+
+initialize:
+    // [brief]  Initialization
+
+    // [acu].a    Load lower wraparound address
+    // [acu].b    Set address to start of coefficient data (0x00)
+    acu(loadl, clear) addr(0) dmux(sa, sa) alu(hold) mac(hold)
+
+    // [acu]    Load upper wraparound address
+    acu(loadm, hold) addr(1) dmux(sa, sa) alu(hold) mac(hold) jmp(eob, wait_for_input)
+
+wait_for_input:
+    // [brief]  Wait state for input data availability
+    
+    // Conditional jump: STAGE_A input available?
+    // [true]   Go to [moving_avg_init]
+    // [false]  Loop
+    acu(clear, clear) dmux(sa, sa) alu(hold) mac(hold) jmpl(in1, moving_avg_init)
+
+moving_avg_init:
+    // [brief]  The first M averages are invalid. This populates the calculation data but does not output the average until valid.
+    // Since we need M+1 samples in DataRam_A memory for the calculation (M, plus x[i-M]) and rely on modulus acu wraparound to 
+    // discard the first M samples' invalid moving average results, we actually have a delay penalty of M+1 samples (the first valid 
+    // moving average from the input stream is lost)
+    
+    // [acu].b  Reset position to coefficient start
+    // [dmux].a Pipeline prep to read Stage_A input and write it to DataRam_A circular buffer
+    acu(hold, clear) addr(1) dmux(brm, sa) alu(hold) mac(hold)
+
+    // [dmux].a Pipeline prep to read stored input x[i] from DataRam_A to [mac].a
+    // [dmux].b Pipeline prep to read [CFG_DENOM_MULT_POS] (1 / M) from DataRam_B to [mac].b
+    // [mac]    Pipeline prep to clear the accumulator and multiply (x[i] * 1 / M)
+    // [write]  Write the incoming sample to DataRam A circular buffer
+    acu(hold, hold) dmux(srm, srm) alu(hold) mac(clra) write(da)
+
+    // [acu].a  Advance to next position, which represents the first stored input from the avg window x[i - M]
+    // [acu].b  Advance to the next coefficient
+    // [dmux].a Pipeline prep to load first stored input from the avg window x[i - M] from DataRam_A to [mac].a
+    // [dmux].b Pipeline prep to load [CFG_DENOM_MULT_NEG] (-1/M) from DataRam_B to [mac].b
+    // [mac]    Loads input x[i] on side A, and the 1 / M coefficient on side B: (x[i] / M); pipeline prep to macc (x[i - M]/-M)
+    acu(incr, incr) dmux(srm, srm) alu(hold) mac(macc)
+
+    // [acu].b  Advance to y[i - 1] position
+    // [dmux].a Pipeline prep to connect MAC calculation output to ALU 'add' input side a
+    // [dmux].b Pipeline prep to connect y[i - 1] value from DataRam_B to ALU 'add' input on side b
+    // [mac]    Multiply and accumulate (x[i - M] * -1/M)
+    acu(hold, incr) dmux(srm, sra) alu(add) mac(hold)
+
+    // Pipeline delay waiting for ALU 'add' output
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
+
+    // [write]  Write the moving average result to DataRam_B
+    acu(hold, hold) addr(1) dmux(sa, sa) alu(hold) mac(hold) write(db) jmpl(acuaeq, moving_avg_loop)
+
+moving_avg_loop:
+    // [brief]  Calculate moving average
+
+    // [acu].b  Reset position to coefficient start
+    // [dmux].a Pipeline prep to read Stage_A input and write it to DataRam_A circular buffer
+    acu(hold, clear) addr(1) dmux(brm, sa) alu(hold) mac(hold)
+
+    // [dmux].a Pipeline prep to read stored input x[i] from DataRam_A to [mac].a
+    // [dmux].b Pipeline prep to read [CFG_DENOM_MULT_POS] (1 / M) from DataRam_B to [mac].b
+    // [mac]    Pipeline prep to clear the accumulator and multiply (x[i] * 1 / M)
+    // [write]  Write the incoming sample to DataRam A circular buffer
+    acu(hold, hold) dmux(srm, srm) alu(hold) mac(clra) write(da)
+
+    // [acu].a  Advance to next position, which represents the first stored input from the avg window x[i - M]
+    // [acu].b  Advance to the next coefficient
+    // [dmux].a Pipeline prep to load first stored input from the avg window x[i - M] from DataRam_A to [mac].a
+    // [dmux].b Pipeline prep to load [CFG_DENOM_MULT_NEG] (-1/M) from DataRam_B to [mac].b
+    // [mac]    Loads input x[i] on side A, and the 1 / M coefficient on side B: (x[i] / M); pipeline prep to macc (x[i - M]/-M)
+    acu(incr, incr) dmux(srm, srm) alu(hold) mac(macc) 
+
+    // [acu].b  Advance to y[i - 1] position
+    // [dmux].a Pipeline prep to connect MAC calculation output to ALU 'add' input side a
+    // [dmux].b Pipeline prep to connect y[i - 1] value from DataRam_B to ALU 'add' input on side b
+    // [mac]    Multiply and accumulate (x[i - M] * -1/M)
+    acu(hold, incr) dmux(srm, sra) alu(add) mac(hold)
+
+    // Pipeline delay waiting for ALU 'add' output
+    acu(hold, hold) dmux(sa, sa) alu(hold) mac(hold)
+
+    // [write]  Write the moving average result to DataRam_B y[i - 1] and to the output
+    acu(hold, hold) addr(1) dmux(sa, sa) alu(hold) mac(hold) write(db, abus) jmpl(eob, moving_avg_loop)
+
+area acu
+org 0
+dw 0x0000   // [CFG_X_LREG]       Dataram address beg of M-sample circular buffer, fixed at 0x00 | 
+dw 0x0500   // [CFG_X_MREG]       Dataram address end of M-sample circular buffer, set this to M + 1 | 
+
+// These are added to aid debugging - data_a doesn't need to be defined
+area data_a
+org 0
+dw 0x000000 // [CAL_SAMP_BUF_0]     Sample circular (ring) buffer
+dw 0x000000 // [CAL_SAMP_BUF_1]     Sample circular (ring) buffer
+dw 0x000000 // [CAL_SAMP_BUF_2]     Sample circular (ring) buffer
+dw 0x000000 // [CAL_SAMP_BUF_3]     Sample circular (ring) buffer
+dw 0x000000 // [CAL_SAMP_BUF_4]     Sample circular (ring) buffer
+dw 0x000000 // [CAL_SAMP_BUF_5]     Sample circular (ring) buffer
+
+// These multiplier coefficients are arranged in order of use, so that we may simply issue acu command 'incr' after each step
+area data_b
+org 0
+dw 0x19999A // [CFG_DENOM_MULT_POS] denominator: +1/M. This example uses M of 5: = +1/5 = +0.2
+dw 0xE66666 // [CFG_DENOM_MULT_NEG] denominator: -1/M. This example uses M of 5: = -1/5 = -0.2
+dw 0x000000 // [CAL_Y_LAST] The last moving average value calculated, y[i - 1]
+</Code>
+  <CyclesToRun>50</CyclesToRun>
+  <InputSequence />
+</Project>

@@ -22,6 +22,7 @@ using DFBProject;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 
 namespace DFBUtility
 {
@@ -62,6 +63,12 @@ namespace DFBUtility
 		public Form1(string[] args)
 		{
 			this.args = args;
+
+			// Set the code to use US culture so that generated html is correct when calling ToString() methods
+			var culture = CultureInfo.CreateSpecificCulture("en-US");
+			Application.CurrentCulture = culture;
+			CultureInfo.DefaultThreadCurrentCulture = culture;
+
 			SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 			Update();
 			InitializeComponent();
@@ -87,7 +94,7 @@ namespace DFBUtility
 
 				webBrowser1.Navigate("about:blank");
 				webBrowser2.Navigate("about:blank");
-
+				
 				// layouts and default states
 				tbCurrCycle.Text = "";
 				lblCycleEnd.Text = "";
